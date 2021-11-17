@@ -19,9 +19,6 @@ abstract contract BasePool is ERC20Votes, AbstractRewards, IBasePool, TokenSaver
 
     IERC20 public immutable depositToken;
     IERC20 public immutable rewardToken;
-    ITimeLockPool public immutable escrowPool;
-    uint256 public immutable escrowPortion; // how much is escrowed 1e18 == 100%
-    uint256 public immutable escrowDuration; // escrow duration in seconds
 
     event RewardsClaimed(address indexed _from, address indexed _receiver, uint256 _escrowedAmount, uint256 _nonEscrowedAmount);
 
@@ -29,18 +26,11 @@ abstract contract BasePool is ERC20Votes, AbstractRewards, IBasePool, TokenSaver
         string memory _name,
         string memory _symbol,
         address _depositToken,
-        address _rewardToken,
-        address _escrowPool,
-        uint256 _escrowPortion,
-        uint256 _escrowDuration
+        address _rewardToken
     ) ERC20Permit(_name) ERC20(_name, _symbol) AbstractRewards(balanceOf, totalSupply) {
-        require(_escrowPortion <= 1e18, "BasePool.constructor: Cannot escrow more than 100%");
         require(_depositToken != address(0), "BasePool.constructor: Deposit token must be set");
         depositToken = IERC20(_depositToken);
         rewardToken = IERC20(_rewardToken);
-        escrowPool = ITimeLockPool(_escrowPool);
-        escrowPortion = _escrowPortion;
-        escrowDuration = _escrowDuration;
 
         if(_rewardToken != address(0) && _escrowPool != address(0)) {
             IERC20(_rewardToken).safeApprove(_escrowPool, type(uint256).max);
@@ -69,19 +59,22 @@ abstract contract BasePool is ERC20Votes, AbstractRewards, IBasePool, TokenSaver
 
     function claimRewards(address _receiver) external {
         uint256 rewardAmount = _prepareCollect(_msgSender());
-        uint256 escrowedRewardAmount = rewardAmount * escrowPortion / 1e18;
-        uint256 nonEscrowedRewardAmount = rewardAmount - escrowedRewardAmount;
+        // uint256 escrowedRewardAmount = rewardAmount * escrowPortion / 1e18;
+        // uint256 nonEscrowedRewardAmount = rewardAmount - escrowedRewardAmount;
 
-        if(escrowedRewardAmount != 0 && address(escrowPool) != address(0)) {
-            escrowPool.deposit(escrowedRewardAmount, escrowDuration, _receiver);
-        }
+        // if(escrowedRewardAmount != 0 && address(escrowPool) != address(0)) {
+        //     escrowPool.deposit(escrowedRewardAmount, escrowDuration, _receiver);
+        // }
 
         // ignore dust
-        if(nonEscrowedRewardAmount > 1) {
-            rewardToken.safeTransfer(_receiver, nonEscrowedRewardAmount);
+        // if(nonEscrowedRewardAmount > 1) {
+        //     rewardToken.safeTransfer(_receiver, nonEscrowedRewardAmount);
+        // }
+        if (rewardAmount > 1) {
+            rewardToken.safeTransfer(_receiver, rewardAmount);
         }
 
-        emit RewardsClaimed(_msgSender(), _receiver, escrowedRewardAmount, nonEscrowedRewardAmount);
+        // emit RewardsClaimed(_msgSender(), _receiver, escrowedRewardAmount, nonEscrowedRewardAmount);
     }
 
 }

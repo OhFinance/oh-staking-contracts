@@ -1,15 +1,23 @@
 {
-  "name": "hardhat-project",
+  "name": "@ohfinance/oh-staking-contracts",
+  "version": "1.0.0",
+  "description": "Oh! Finance Staking Smart Contracts",
+  "homepage": "https://oh.finance",
+  "repository": "https://github.com/OhFinance/oh-staking-contracts",
+  "author": "OhFinance <hello@oh.finance>",
+  "license": "MIT",
+  "scripts": {
+    "clean": "hardhat clean",
+    "compile": "hardhat compile"
+  },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "@openzeppelin/contracts": "^4.3.3",
     "chai": "^4.3.4",
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.5.1",
     "hardhat": "^2.6.8",
     "solidity-coverage": "^0.7.17"
-  },
-  "dependencies": {
-    "@openzeppelin/contracts": "^4.3.3"
   }
 }

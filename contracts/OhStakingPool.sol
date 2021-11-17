@@ -2,13 +2,13 @@
 pragma solidity 0.8.7;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/math/Math.sol";
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 import "./base/BasePool.sol";
 import "./interfaces/ITimeLockPool.sol";
 
-contract TimeLockPool is BasePool, ITimeLockPool {
+contract OhStakingPool is BasePool, ITimeLockPool {
     using Math for uint256;
     using SafeERC20 for IERC20;
 
@@ -23,24 +23,22 @@ contract TimeLockPool is BasePool, ITimeLockPool {
         uint64 start;
         uint64 end;
     }
+
+    event Deposited(uint256 amount, uint256 duration, address indexed receiver, address indexed from);
+    event Withdrawn(uint256 indexed depositId, address indexed receiver, address indexed from, uint256 amount);
+
     constructor(
         string memory _name,
         string memory _symbol,
         address _depositToken,
         address _rewardToken,
-        address _escrowPool,
-        uint256 _escrowPortion,
-        uint256 _escrowDuration,
         uint256 _maxBonus,
         uint256 _maxLockDuration
-    ) BasePool(_name, _symbol, _depositToken, _rewardToken, _escrowPool, _escrowPortion, _escrowDuration) {
+    ) BasePool(_name, _symbol, _depositToken, _rewardToken) {
         require(_maxLockDuration >= MIN_LOCK_DURATION, "TimeLockPool.constructor: max lock duration must be greater or equal to mininmum lock duration");
         maxBonus = _maxBonus;
         maxLockDuration = _maxLockDuration;
     }
-
-    event Deposited(uint256 amount, uint256 duration, address indexed receiver, address indexed from);
-    event Withdrawn(uint256 indexed depositId, address indexed receiver, address indexed from, uint256 amount);
 
     function deposit(uint256 _amount, uint256 _duration, address _receiver) external override {
         require(_amount > 0, "TimeLockPool.deposit: cannot deposit 0");
@@ -68,7 +66,7 @@ contract TimeLockPool is BasePool, ITimeLockPool {
         Deposit memory userDeposit = depositsOf[_msgSender()][_depositId];
         require(block.timestamp >= userDeposit.end, "TimeLockPool.withdraw: too soon");
 
-        //                      No risk of wrapping around on casting to uint256 since deposit end always > deposit start and types are 64 bits
+        // No risk of wrapping around on casting to uint256 since deposit end always > deposit start and types are 64 bits
         uint256 shareAmount = userDeposit.amount * getMultiplier(uint256(userDeposit.end - userDeposit.start)) / 1e18;
 
         // remove Deposit
@@ -102,5 +100,10 @@ contract TimeLockPool is BasePool, ITimeLockPool {
 
     function getDepositsOfLength(address _account) public view returns(uint256) {
         return depositsOf[_account].length;
+    }
+
+    // disable transfers
+    function _transfer(address _from, address _to, uint256 _amount) internal override {
+        revert("NON_TRANSFERABLE");
     }
 }
