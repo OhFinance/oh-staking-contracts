@@ -36,21 +36,29 @@ const config: HardhatUserConfig = {
     runOnCompile: true,
   },
   mocha: {
-    timeout: 200000
+    timeout: 200000,
   },
   namedAccounts: {
     deployer: 0,
-    token: '',
+    treasury: '0xDe921b5b1C0dcD2D1C1eef6890E7d23a16A65294',
+    token: {
+      1: '0x16ba8Efe847EBDFef99d399902ec29397D403C30',
+      43114: '0x937e077abaea52d3abf879c9b9d3f2ebd15baa21',
+    },
+    tokenLp: {
+      1: '0xcb4288ee0484b51ccb8d40893c4812df72cd5f70',
+    },
+    zero: '0x0000000000000000000000000000000000000000',
   },
-  typechain: {
-    outDir: './types',
-  },
+  // typechain: {
+  //   outDir: './types',
+  // },
   external: {
     contracts: [
       {
-        artifacts: "../node_modules/@ohfinance/oh-contracts/artifacts"
-      }
-    ]
+        artifacts: '../node_modules/@ohfinance/oh-contracts/artifacts',
+      },
+    ],
   },
   networks: {
     localhost: {
@@ -78,13 +86,10 @@ const config: HardhatUserConfig = {
     mainnet: {
       url: process.env.MAINNET_NODE_URL || '',
       chainId: 1,
-      accounts:
-        process.env.DEPLOYER_KEY
-          ? [`0x${process.env.DEPLOYER_KEY}`]
-          : [],
+      accounts: process.env.DEPLOYER_KEY ? [`0x${process.env.DEPLOYER_KEY}`] : [],
       gasPrice: 200000000000,
     },
-  }
-}
+  },
+};
 
-export default config
+export default config;
