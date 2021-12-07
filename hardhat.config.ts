@@ -2,7 +2,7 @@
 import 'dotenv/config';
 
 // import path resolution
-import 'tsconfig-paths/register';
+// import 'tsconfig-paths/register';
 
 // hardhat config
 import {HardhatUserConfig} from 'hardhat/config';
@@ -11,10 +11,10 @@ import {HardhatUserConfig} from 'hardhat/config';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
 import '@nomiclabs/hardhat-waffle';
-import '@typechain/hardhat';
+// import '@typechain/hardhat';
 import 'hardhat-abi-exporter';
 import 'hardhat-deploy';
-// import 'hardhat-gas-reporter';
+import 'hardhat-gas-reporter';
 import 'hardhat-spdx-license-identifier';
 
 const config: HardhatUserConfig = {
@@ -40,7 +40,10 @@ const config: HardhatUserConfig = {
   },
   namedAccounts: {
     deployer: 0,
-    treasury: '0xDe921b5b1C0dcD2D1C1eef6890E7d23a16A65294',
+    treasury: {
+      1: '0xDe921b5b1C0dcD2D1C1eef6890E7d23a16A65294',
+      43114: '',
+    },
     token: {
       1: '0x16ba8Efe847EBDFef99d399902ec29397D403C30',
       43114: '0x937e077abaea52d3abf879c9b9d3f2ebd15baa21',
@@ -69,7 +72,7 @@ const config: HardhatUserConfig = {
       chainId: 1,
       forking: {
         // enabled: false,
-        blockNumber: 13489900,
+        blockNumber: 13758500,
         url: process.env.MAINNET_NODE_URL || '',
       },
     },

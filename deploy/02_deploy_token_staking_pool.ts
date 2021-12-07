@@ -1,36 +1,28 @@
 import {parseEther} from '@ethersproject/units';
 import {DeployFunction} from 'hardhat-deploy/types';
 import {HardhatRuntimeEnvironment} from 'hardhat/types';
-import {getEscrowPool} from 'lib/contract';
-
-// 3 Months
-const ESCROW_PERIOD = 60 * 60 * 24 * 30 * 3;
-
-// 1 Year
-const LOCKUP_PERIOD = 60 * 60 * 24 * 30 * 12;
+import {getEscrow} from '../lib/contract';
+import {LOCKUP_PERIOD} from '../lib/constants';
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
-  const {deployer, token, tokenLp, zero} = await getNamedAccounts();
+  const {deployer, token} = await getNamedAccounts();
   const {deploy, log} = deployments;
 
-  log('Staking - Oh! LP Pool');
+  log('Staking - Oh! Pool');
 
-  const escrow = await getEscrowPool(deployer);
+  const escrow = await getEscrow(deployer);
 
-  await deploy('OhLPStakingPool', {
+  await deploy('OhStaking', {
     from: deployer,
-    contract: 'OhPool',
     args: [
-      'Staked Oh! Finance Sushiswap LP',
-      'SOHSLP',
-      tokenLp,
+      'Staked Oh! Finance',
+      'SOH',
       token,
       escrow.address,
       parseEther('1'),
-      ESCROW_PERIOD,
-      parseEther('1'),
       LOCKUP_PERIOD,
+      Date.now() + 600, // 86400 // 1d
     ],
     log: true,
     deterministicDeployment: false,
@@ -38,5 +30,5 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 };
 
-deploy.tags = ['OhLPStakingPool'];
+deploy.tags = ['Staking'];
 export default deploy;

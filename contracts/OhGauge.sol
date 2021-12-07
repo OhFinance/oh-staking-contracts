@@ -1,11 +1,12 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity 0.8.7;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./interfaces/IBasePool.sol";
-import "./base/TokenSaver.sol";
+
 
 /// @dev Oh! Finance Gauge
 /// @dev Contract to distribute rewards to Vault contracts, cross-chain compatible

@@ -1,8 +1,15 @@
 import {ethers} from 'hardhat';
 
-export const getEscrowPool = async (signer: string, at?: string) => {
+export const getEscrow = async (signer: string, at?: string) => {
   if (at) {
-    return await ethers.getContractAt('EscrowPool', at, signer);
+    return await ethers.getContractAt('OhEscrow', at, signer);
   }
-  return await ethers.getContract('EscrowPool', signer);
+  return await ethers.getContract('OhEscrow', signer);
+};
+
+export const getStaking = async (signer: string, at?: string) => {
+  if (at) {
+    return await ethers.getContractAt('OhStaking', at, signer);
+  }
+  return await ethers.getContract('OhStaking', signer);
 };
