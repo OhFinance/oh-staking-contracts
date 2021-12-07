@@ -22,7 +22,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       escrow.address,
       parseEther('1'),
       LOCKUP_PERIOD,
-      Date.now() + 600, // 86400 // 1d
+      600 + Math.floor(Date.now() / 1000), // 86400 // 1d
     ],
     log: true,
     deterministicDeployment: false,

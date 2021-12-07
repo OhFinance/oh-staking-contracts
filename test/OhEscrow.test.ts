@@ -21,7 +21,7 @@ describe('OhEscrow', function () {
     expect(symbol).to.eq('EOH');
     expect(reward).to.eq(token);
     expect(treasury).to.eq(multisig);
-    expect(duration).to.eq(600);
+    expect(duration).to.eq(7776000);
   });
 
   it('sets minter correctly', async function () {

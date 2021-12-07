@@ -19,6 +19,12 @@ export const approve = async (
   await tx.wait();
 };
 
+export const transfer = async (signer: string, token: string, to: string, amount: BigNumberish) => {
+  const erc20 = await getERC20(signer, token);
+  const tx = await erc20.transfer(to, amount);
+  await tx.wait();
+};
+
 // staking
 
 export const stake = async (

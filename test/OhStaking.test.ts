@@ -14,10 +14,13 @@ import {
   claim,
   exit,
   redeem,
+  redeemAll,
   setRewardAmount,
   stake,
+  transfer,
   unstake,
 } from '../lib/functions';
+import {ESCROW_PERIOD, LOCKUP_PERIOD} from '../lib/constants';
 
 describe('OhStaking', function () {
   describe('Staking', function () {
@@ -31,20 +34,13 @@ describe('OhStaking', function () {
       const tx = await escrow.setMinter(staking.address);
       await tx.wait();
 
-      // approve escrow to take rewards from treasury
       await impersonateAccount(treasury);
       const signer = await ethers.getSigner(treasury);
-      const rewardToken = await getERC20(signer.address, token);
-      const tx2 = await rewardToken.approve(escrow.address, 1);
-      await tx2.wait();
 
-      const tx3 = await rewardToken.transfer(deployer, 10000000);
-      await tx3.wait();
-
-      // const bal = await rewardToken.balanceOf(deployer);
-      // console.log(bal.toString());
-      // await stopImpersonatingAccount(treasury);
-      // await impersonateAccount(deployer);
+      // approve escrow to take rewards from treasury
+      await approve(signer.address, token, escrow.address, parseEther('10000000'));
+      // send deployer funds
+      await transfer(signer.address, token, deployer, 100000);
     });
 
     it('is deployed correctly', async function () {
@@ -65,7 +61,7 @@ describe('OhStaking', function () {
       expect(staked).to.eq(token);
       expect(reward).to.eq(escrow.address);
       expect(maxBonus).to.eq(parseEther('1'));
-      expect(maxLockDuration).to.eq(31104000);
+      expect(maxLockDuration).to.eq(LOCKUP_PERIOD);
       // expect(startRewardsTime).to.be.gt(Date.now());
     });
 
@@ -73,21 +69,32 @@ describe('OhStaking', function () {
       const {deployer} = await getNamedAccounts();
       const staking = await getStaking(deployer);
 
-      await setRewardAmount(deployer, staking.address, parseEther('100'), 31104000);
+      await setRewardAmount(deployer, staking.address, parseEther('10000000'), LOCKUP_PERIOD);
+
+      const rewardRate = await staking.rewardRate();
+      const rewardDuration = await staking.rewardsDuration();
+
+      expect(rewardRate).to.be.gt(0);
+      expect(rewardDuration).to.be.eq(LOCKUP_PERIOD);
     });
 
     it('stakes and locks correctly', async function () {
       const {deployer, token} = await getNamedAccounts();
-      const contract = await getERC20(deployer, token);
       const staking = await getStaking(deployer);
 
       await approve(deployer, token, staking.address, 100000);
       await stake(deployer, staking.address, 10000, 0);
 
+      const standardBalance = await balanceOf(deployer, staking.address, deployer);
+      expect(standardBalance).to.eq(10000);
+
       await advanceNSeconds(10000);
       await advanceNBlocks(1);
 
-      await stake(deployer, staking.address, 90000, 31104000);
+      await stake(deployer, staking.address, 90000, LOCKUP_PERIOD);
+
+      const bonusBalance = await balanceOf(deployer, staking.address, deployer);
+      expect(bonusBalance).to.eq(200000);
     });
 
     it('claims and redeems escrowed rewards', async function () {
@@ -95,22 +102,33 @@ describe('OhStaking', function () {
       const staking = await getStaking(deployer);
       const escrow = await getEscrow(deployer);
 
-      await claim(deployer, staking.address);
+      // await claim(deployer, staking.address);
 
-      await advanceNSeconds(6000);
+      await advanceNSeconds(10000);
       await advanceNBlocks(1);
 
-      // await redeem(deployer, escrow.address);
+      await claim(deployer, staking.address);
+      const balance = await balanceOf(deployer, escrow.address, deployer);
+
+      expect(balance).to.be.gt(0);
+
+      await advanceNSeconds(ESCROW_PERIOD + 1);
+      await advanceNBlocks(1);
+
+      await redeemAll(deployer, escrow.address);
     });
 
     it('unstakes and exits correctly', async function () {
       const {deployer} = await getNamedAccounts();
       const staking = await getStaking(deployer);
 
-      await advanceNSeconds(31104000);
+      await advanceNSeconds(LOCKUP_PERIOD);
       await advanceNBlocks(1);
 
       await unstake(deployer, staking.address, 100000);
+
+      // await advanceNSeconds(1);
+      // await advanceNBlocks(1);
 
       // await exit(deployer, staking.address);
     });
