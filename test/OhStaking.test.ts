@@ -1,8 +1,23 @@
 import {parseEther} from '@ethersproject/units';
 import {expect} from 'chai';
 import {deployments, ethers, getNamedAccounts} from 'hardhat';
-import {impersonateAccount} from '../lib/utils';
-import {getEscrow, getStaking} from '../lib/contract';
+import {
+  advanceNBlocks,
+  advanceNSeconds,
+  impersonateAccount,
+  stopImpersonatingAccount,
+} from '../lib/utils';
+import {getERC20, getEscrow, getStaking} from '../lib/contract';
+import {
+  approve,
+  balanceOf,
+  claim,
+  exit,
+  redeem,
+  setRewardAmount,
+  stake,
+  unstake,
+} from '../lib/functions';
 
 describe('OhStaking', function () {
   describe('Staking', function () {
@@ -19,13 +34,17 @@ describe('OhStaking', function () {
       // approve escrow to take rewards from treasury
       await impersonateAccount(treasury);
       const signer = await ethers.getSigner(treasury);
-      const rewardToken = await ethers.getContractAt(
-        ['function approve(address,uint256) external'],
-        token,
-        signer
-      );
+      const rewardToken = await getERC20(signer.address, token);
       const tx2 = await rewardToken.approve(escrow.address, 1);
       await tx2.wait();
+
+      const tx3 = await rewardToken.transfer(deployer, 10000000);
+      await tx3.wait();
+
+      // const bal = await rewardToken.balanceOf(deployer);
+      // console.log(bal.toString());
+      // await stopImpersonatingAccount(treasury);
+      // await impersonateAccount(deployer);
     });
 
     it('is deployed correctly', async function () {
@@ -47,13 +66,53 @@ describe('OhStaking', function () {
       expect(reward).to.eq(escrow.address);
       expect(maxBonus).to.eq(parseEther('1'));
       expect(maxLockDuration).to.eq(31104000);
-      expect(startRewardsTime).to.be.gt(Date.now());
+      // expect(startRewardsTime).to.be.gt(Date.now());
     });
 
-    it('stakes and locks correctly', async function () {});
+    it('sets reward rate correctly', async function () {
+      const {deployer} = await getNamedAccounts();
+      const staking = await getStaking(deployer);
 
-    it('claims and redeems escrowed rewards', async function () {});
+      await setRewardAmount(deployer, staking.address, parseEther('100'), 31104000);
+    });
 
-    it('unstakes and exits correctly', async function () {});
+    it('stakes and locks correctly', async function () {
+      const {deployer, token} = await getNamedAccounts();
+      const contract = await getERC20(deployer, token);
+      const staking = await getStaking(deployer);
+
+      await approve(deployer, token, staking.address, 100000);
+      await stake(deployer, staking.address, 10000, 0);
+
+      await advanceNSeconds(10000);
+      await advanceNBlocks(1);
+
+      await stake(deployer, staking.address, 90000, 31104000);
+    });
+
+    it('claims and redeems escrowed rewards', async function () {
+      const {deployer} = await getNamedAccounts();
+      const staking = await getStaking(deployer);
+      const escrow = await getEscrow(deployer);
+
+      await claim(deployer, staking.address);
+
+      await advanceNSeconds(6000);
+      await advanceNBlocks(1);
+
+      // await redeem(deployer, escrow.address);
+    });
+
+    it('unstakes and exits correctly', async function () {
+      const {deployer} = await getNamedAccounts();
+      const staking = await getStaking(deployer);
+
+      await advanceNSeconds(31104000);
+      await advanceNBlocks(1);
+
+      await unstake(deployer, staking.address, 100000);
+
+      // await exit(deployer, staking.address);
+    });
   });
 });

@@ -1,40 +1,38 @@
 // SPDX-License-Identifier: MIT
 
-//SPDX-License-Identifier: MIT
+pragma solidity 0.8.7;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-pragma solidity 0.8.7;
-
 contract OhEscrow is ERC20, Ownable, ReentrancyGuard {
     IERC20 public token;
 
     address public treasury;
 
-    uint public escrowDuration; 
-    uint public redeemedRewards;
+    uint256 public escrowDuration;
+    uint256 public redeemedRewards;
 
     mapping(address => bool) public minters;
     mapping(address => uint64) public counter;
     mapping(address => Lock[]) public locks;
 
     struct Lock {
-        uint amount;
+        uint256 amount;
         uint64 end;
     }
 
-    event Redeemed(address indexed user, uint amount);
+    event Redeemed(address indexed user, uint256 amount);
     event MinterUpdated(address indexed minter, bool approved);
 
     constructor(
-        string memory name, 
-        string memory symbol, 
+        string memory name,
+        string memory symbol,
         address _token,
         address _treasury,
-        uint _escrowDuration
+        uint256 _escrowDuration
     ) ERC20(name, symbol) {
         token = IERC20(_token);
         treasury = _treasury;
@@ -45,19 +43,19 @@ contract OhEscrow is ERC20, Ownable, ReentrancyGuard {
 
     // redeem single escrow lock rewards, included for edge cases w/ too many locks for EVM to handle
     function redeem() external nonReentrant {
-        uint length = locks[msg.sender].length;
-        uint lockCounter = counter[msg.sender];
+        uint256 length = locks[msg.sender].length;
+        uint256 lockCounter = counter[msg.sender];
         require(length > lockCounter, "All tokens redeemed");
         require(locks[msg.sender][lockCounter].end < block.timestamp, "Tokens still locked");
 
-        uint redeemAmount = locks[msg.sender][lockCounter].amount;
+        uint256 redeemAmount = locks[msg.sender][lockCounter].amount;
 
         // ensure any transfers are accounted for
-        uint balance = balanceOf(msg.sender);
+        uint256 balance = balanceOf(msg.sender);
         if (redeemAmount > balance) {
             redeemAmount = balance;
         }
-        
+
         // update counter and rewards
         counter[msg.sender] = uint64(lockCounter + 1);
         redeemedRewards += redeemAmount;
@@ -70,14 +68,14 @@ contract OhEscrow is ERC20, Ownable, ReentrancyGuard {
 
     // redeem all available escrow rewards
     function redeemAll() external nonReentrant {
-        uint length = locks[msg.sender].length;
-        uint lockCounter = counter[msg.sender];
+        uint256 length = locks[msg.sender].length;
+        uint256 lockCounter = counter[msg.sender];
         require(length > lockCounter, "All tokens redeemed");
 
         // find amount to redeem
-        uint redeemAmount;
-        uint redeemCount;
-        for (uint i = lockCounter; i < length; i++) {
+        uint256 redeemAmount;
+        uint256 redeemCount;
+        for (uint256 i = lockCounter; i < length; i++) {
             if (locks[msg.sender][i].end < block.timestamp) {
                 redeemAmount += locks[msg.sender][i].amount;
                 redeemCount += 1;
@@ -90,7 +88,7 @@ contract OhEscrow is ERC20, Ownable, ReentrancyGuard {
         require(redeemAmount > 0, "No tokens to redeem");
 
         // ensure any transfers are accounted for
-        uint balance = balanceOf(msg.sender);
+        uint256 balance = balanceOf(msg.sender);
         if (redeemAmount > balance) {
             redeemAmount = balance;
         }
@@ -105,26 +103,23 @@ contract OhEscrow is ERC20, Ownable, ReentrancyGuard {
         emit Redeemed(msg.sender, redeemAmount);
     }
 
-    function mint(address _to, uint _amount) external returns (bool) {
+    function mint(address _to, uint256 _amount) external returns (bool) {
         require(minters[msg.sender], "Minting permissions denied");
-        
+
         // create a new lock
-        locks[_to].push(Lock({ 
-            amount: _amount,
-            end: uint64(block.timestamp + escrowDuration)
-        }));
-        
+        locks[_to].push(Lock({amount: _amount, end: uint64(block.timestamp + escrowDuration)}));
+
         _mint(_to, _amount);
         return true;
     }
 
     // public views
 
-    function vested(address _user) public view returns (uint rewards) {
-        uint length = locks[_user].length;
-        uint lockCounter = counter[_user];
+    function vested(address _user) public view returns (uint256 rewards) {
+        uint256 length = locks[_user].length;
+        uint256 lockCounter = counter[_user];
 
-        for (uint i = lockCounter; i < length; i++) {
+        for (uint256 i = lockCounter; i < length; i++) {
             if (locks[_user][i].end < block.timestamp) {
                 rewards += locks[_user][i].amount;
             } else {
@@ -141,11 +136,8 @@ contract OhEscrow is ERC20, Ownable, ReentrancyGuard {
         uint256 _amount
     ) internal override {
         // push lock with new vesting period to recipient
-        locks[_to].push(Lock({
-            amount: _amount,
-            end: uint64(block.timestamp + escrowDuration)
-        }));
-        
+        locks[_to].push(Lock({amount: _amount, end: uint64(block.timestamp + escrowDuration)}));
+
         super._transfer(_from, _to, _amount);
     }
 
