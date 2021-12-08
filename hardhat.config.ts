@@ -42,14 +42,20 @@ const config: HardhatUserConfig = {
     deployer: 0,
     treasury: {
       1: '0xDe921b5b1C0dcD2D1C1eef6890E7d23a16A65294',
+      4: '0x123456D302B690f8525B4BAC5681101d706e850e',
+      42: '0x123456D302B690f8525B4BAC5681101d706e850e',
       43114: '',
     },
     token: {
       1: '0x16ba8Efe847EBDFef99d399902ec29397D403C30',
+      4: '0x6b461A994d76d8248a6B439D4a19cDfd821409eE',
+      42: '0x6b461A994d76d8248a6B439D4a19cDfd821409eE',
       43114: '0x937e077abaea52d3abf879c9b9d3f2ebd15baa21',
     },
     tokenLp: {
       1: '0xcb4288ee0484b51ccb8d40893c4812df72cd5f70',
+      4: '0x3cd280a8ba6634a9e168abdd32254da2ae2b267a',
+      42: '0x822717a4593f97fd8ccc162bd0330d15f1679f97',
     },
     zero: '0x0000000000000000000000000000000000000000',
   },

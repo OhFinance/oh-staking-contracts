@@ -11,7 +11,13 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   await deploy('OhEscrow', {
     from: deployer,
-    args: ['Escrowed Oh! Finance', 'EOH', token, treasury, ESCROW_PERIOD],
+    args: [
+      'Escrowed Oh! Finance',
+      'EOH',
+      token,
+      treasury,
+      ESCROW_PERIOD, // 60,
+    ],
     log: true,
     deterministicDeployment: false,
     skipIfAlreadyDeployed: false,

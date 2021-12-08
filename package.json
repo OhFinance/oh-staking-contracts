@@ -9,7 +9,13 @@
   "scripts": {
     "clean": "hardhat clean",
     "compile": "hardhat compile",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "kovan:deploy": "hardhat --network kovan deploy",
+    "kovan:run": "hardhat --network kovan run",
+    "kovan:verify": "hardhat --network kovan etherscan-verify",
+    "rinkeby:deploy": "hardhat --network rinkeby deploy",
+    "rinkeby:run": "hardhat --network rinkeby run",
+    "rinkeby:verify": "hardhat --network rinkeby etherscan-verify"
   },
   "devDependencies": {
     "@ethereum-waffle/chai": "^3.2.2",

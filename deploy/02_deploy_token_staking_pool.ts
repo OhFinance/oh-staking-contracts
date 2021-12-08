@@ -2,7 +2,7 @@ import {parseEther} from '@ethersproject/units';
 import {DeployFunction} from 'hardhat-deploy/types';
 import {HardhatRuntimeEnvironment} from 'hardhat/types';
 import {getEscrow} from '../lib/contract';
-import {LOCKUP_PERIOD} from '../lib/constants';
+import {ESCROW_PERIOD} from '../lib/constants';
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts} = hre;
@@ -20,9 +20,9 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       'SOH',
       token,
       escrow.address,
-      parseEther('1'),
-      LOCKUP_PERIOD,
-      600 + Math.floor(Date.now() / 1000), // 86400 // 1d
+      parseEther('2'),
+      ESCROW_PERIOD, //60 * 60,
+      Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 5, // + 600
     ],
     log: true,
     deterministicDeployment: false,
