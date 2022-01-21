@@ -12,6 +12,7 @@ contract OhStaking is ERC20, Ownable, ReentrancyGuard {
     IERC20 public token;
     IEscrow public escrow;
 
+    bool public isKilled = false;
     uint256 public rewardRate = 0;
     uint256 public rewardsDuration = 0;
     uint256 public claimedRewards;
@@ -83,6 +84,11 @@ contract OhStaking is ERC20, Ownable, ReentrancyGuard {
         _claim(msg.sender);
     }
 
+    function kill() external onlyOwner {
+        require(!isKilled, "Pool already killed");
+        isKilled = true;
+    }
+
     // public views
 
     function getMultiplier(uint256 duration) public view returns (uint256) {
@@ -136,6 +142,7 @@ contract OhStaking is ERC20, Ownable, ReentrancyGuard {
     ) internal updateReward(_user) {
         require(_amount > 0, "Must stake > 0 tokens");
         require(_duration <= maxLockDuration, "Lock exceeds max duration");
+        require(!isKilled, "Contract has been killed");
 
         uint256 balance = deposits[_user].amount;
         uint256 start = deposits[_user].start;
@@ -165,8 +172,10 @@ contract OhStaking is ERC20, Ownable, ReentrancyGuard {
         uint256 start = deposits[_user].start;
         uint256 end = deposits[_user].end;
 
-        // require lock has ended
-        require(end < block.timestamp, "Tokens still locked");
+        // require lock has ended if contract has not been killed
+        if (!isKilled) {
+            require(end < block.timestamp, "Tokens still locked");
+        }
 
         // calculate burn amount
         uint256 burnAmount = (_amount * getMultiplier(end - start)) / 1e18;

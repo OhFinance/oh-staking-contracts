@@ -20,7 +20,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       'SOH',
       token,
       escrow.address,
-      parseEther('2'),
+      parseEther('1'),
       ESCROW_PERIOD, //60 * 60,
       Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 5, // + 600
     ],
