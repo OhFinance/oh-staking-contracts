@@ -127,10 +127,10 @@ describe('OhStaking', function () {
 
       await unstake(deployer, staking.address, 100000);
 
-      // await advanceNSeconds(1);
-      // await advanceNBlocks(1);
+      await advanceNSeconds(86400);
+      await advanceNBlocks(1);
 
-      // await exit(deployer, staking.address);
+      await exit(deployer, staking.address);
     });
   });
 });
