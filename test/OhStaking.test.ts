@@ -20,7 +20,8 @@ import {
   transfer,
   unstake,
 } from '../lib/functions';
-import {ESCROW_PERIOD, LOCKUP_PERIOD} from '../lib/constants';
+import {ESCROW_PERIOD, LOCKUP_PERIOD, TWO_WEEKS} from '../lib/constants';
+import {formatUnits} from '@ethersproject/units';
 
 describe('OhStaking', function () {
   describe('Staking', function () {
@@ -83,18 +84,18 @@ describe('OhStaking', function () {
       const staking = await getStaking(deployer);
 
       await approve(deployer, token, staking.address, 100000);
-      await stake(deployer, staking.address, 10000, 0);
+      await stake(deployer, staking.address, 10000, TWO_WEEKS);
 
       const standardBalance = await balanceOf(deployer, staking.address, deployer);
-      expect(standardBalance).to.eq(10000);
+      expect(standardBalance).to.eq(11555);
 
-      await advanceNSeconds(10000);
+      await advanceNSeconds(TWO_WEEKS);
       await advanceNBlocks(1);
 
       await stake(deployer, staking.address, 90000, LOCKUP_PERIOD);
 
       const bonusBalance = await balanceOf(deployer, staking.address, deployer);
-      expect(bonusBalance).to.eq(200000);
+      expect(bonusBalance).to.eq(201555);
     });
 
     it('claims and redeems escrowed rewards', async function () {
@@ -104,17 +105,30 @@ describe('OhStaking', function () {
 
       // await claim(deployer, staking.address);
 
-      await advanceNSeconds(10000);
+      await advanceNSeconds(LOCKUP_PERIOD);
       await advanceNBlocks(1);
 
+      console.log("*** Claim...");
       await claim(deployer, staking.address);
       const balance = await balanceOf(deployer, escrow.address, deployer);
+      console.log("User Balance: " + formatUnits(balance, 18));
 
-      expect(balance).to.be.gt(0);
+      //expect(balance).to.be.gt(0);
 
       await advanceNSeconds(ESCROW_PERIOD + 1);
       await advanceNBlocks(1);
 
+      console.log("*** Redeem...");
+      await redeemAll(deployer, escrow.address);
+
+      await advanceNSeconds(TWO_WEEKS);
+      await advanceNBlocks(1);
+
+      await claim(deployer, staking.address);
+      const balance2 = await balanceOf(deployer, escrow.address, deployer);
+      console.log("User Balance: " + formatUnits(balance2, 18));
+
+      console.log("*** Redeem...");
       await redeemAll(deployer, escrow.address);
     });
 
@@ -125,11 +139,13 @@ describe('OhStaking', function () {
       await advanceNSeconds(LOCKUP_PERIOD);
       await advanceNBlocks(1);
 
-      await unstake(deployer, staking.address, 100000);
+      console.log("*** Unstaking...");
+      await unstake(deployer, staking.address, 60000);
 
       await advanceNSeconds(86400);
       await advanceNBlocks(1);
 
+      console.log("*** Exiting...");
       await exit(deployer, staking.address);
     });
   });

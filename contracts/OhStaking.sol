@@ -105,6 +105,9 @@ contract OhStaking is ERC20, Ownable, ReentrancyGuard {
     }
 
     function rewardPerToken() public view returns (uint256) {
+        console.log("Total supply:\n %s", totalSupply());
+        // console.log("block.timestamp:\n %s", block.timestamp);
+        // console.log("startRewardsTime:\n %s", startRewardsTime);
         if (totalSupply() == 0 || block.timestamp < startRewardsTime) {
             return 0;
         }
@@ -118,9 +121,8 @@ contract OhStaking is ERC20, Ownable, ReentrancyGuard {
         console.log("rewards[account]:\n %s", rewards[account]);
         console.log("earned:\n %s", ((balanceOf(account) * (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18) + rewards[account]);
         return ((balanceOf(account) * (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18) + rewards[account];
-        //return 1;
+        //return 1;   
     }
-
     // internal views
 
     // function to check if staking rewards have ended
@@ -161,6 +163,9 @@ contract OhStaking is ERC20, Ownable, ReentrancyGuard {
 
         // calculate mint amount, account for previous deposits
         uint256 mintAmount = (((balance + _amount) * getMultiplier(_duration)) / 1e18) - balance;
+        console.log("Duration:\n %s", _duration);
+        console.log("Multiplier:\n %s", getMultiplier(_duration));
+        console.log("mintAmount:\n %s", mintAmount);
 
         // update user deposit
         deposits[_user].amount = balance + _amount;
@@ -176,9 +181,13 @@ contract OhStaking is ERC20, Ownable, ReentrancyGuard {
     function _unstake(address _user, uint256 _amount) internal updateReward(_user) {
         require(_amount > 0, "Must withdraw > 0 tokens");
 
+        console.log("_unstake amount:\n %s", _amount);
+
         uint256 balance = deposits[_user].amount;
         uint256 start = deposits[_user].start;
         uint256 end = deposits[_user].end;
+
+        console.log("deposits[_user].amount:\n %s", balance);
 
         // require lock has ended if contract has not been killed
         if (!isKilled) {
@@ -195,18 +204,25 @@ contract OhStaking is ERC20, Ownable, ReentrancyGuard {
             deposits[_user].end = 0;
         }
 
+
+        console.log("Transfering %s token to user", _amount);
+        console.log("Burning %s LP token", burnAmount);
+
         // burn and transfer
         _burn(_user, burnAmount);
+
         require(token.transfer(_user, _amount), "Token transfer failed");
         emit Unstaked(_user, _amount);
     }
 
     function _claim(address _user) internal {
+        console.log("*Inside Claim function*\nrewards[_user]:%s", rewards[_user]);
         uint256 reward = rewards[_user];
+        console.log("User Rewards:\n %s", reward);
         if (reward > 0) {
-            rewards[_user] = 0;
-            claimedRewards += reward;
             require(escrow.mint(_user, reward), "Token transfer failed");
+            claimedRewards += reward;
+            rewards[_user] = 0;
             emit RewardsClaimed(_user, reward);
         }
     }
