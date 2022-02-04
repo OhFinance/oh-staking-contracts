@@ -98,6 +98,7 @@ contract OhEscrow is ERC20, Ownable, ReentrancyGuard {
 
         require(length > lockCounter, "All tokens redeemed");
 
+
         // find amount to redeem
         uint256 redeemAmount;
         uint256 redeemCount;
@@ -128,6 +129,7 @@ contract OhEscrow is ERC20, Ownable, ReentrancyGuard {
         // burn escrow and transfer rewards
         _burn(msg.sender, redeemAmount);
         require(token.transferFrom(treasury, msg.sender, redeemAmount), "Token transfer failed");
+        console.log("TOKENS TRANSFERED TO USER: %s", redeemAmount);
         emit Redeemed(msg.sender, redeemAmount);
     }
 
