@@ -54,7 +54,6 @@ describe('OhStaking', function () {
       const reward = await staking.escrow();
       const maxBonus = await staking.maxBonus();
       const maxLockDuration = await staking.maxLockDuration();
-      const startRewardsTime = await staking.startRewardsTime();
 
       expect(name).to.eq('Staked Oh! Finance');
       expect(symbol).to.eq('SOH');
@@ -62,7 +61,6 @@ describe('OhStaking', function () {
       expect(reward).to.eq(escrow.address);
       expect(maxBonus).to.eq(parseEther('1'));
       expect(maxLockDuration).to.eq(LOCKUP_PERIOD);
-      // expect(startRewardsTime).to.be.gt(Date.now());
     });
 
     it('sets reward rate correctly', async function () {
@@ -102,9 +100,7 @@ describe('OhStaking', function () {
       const staking = await getStaking(deployer);
       const escrow = await getEscrow(deployer);
 
-      // await claim(deployer, staking.address);
-
-      await advanceNSeconds(10000);
+      await advanceNSeconds(86400 * 2); // 2 days
       await advanceNBlocks(1);
 
       await claim(deployer, staking.address);
@@ -125,9 +121,9 @@ describe('OhStaking', function () {
       await advanceNSeconds(LOCKUP_PERIOD);
       await advanceNBlocks(1);
 
-      await unstake(deployer, staking.address, 100000);
+      await unstake(deployer, staking.address, 99999);
 
-      await advanceNSeconds(86400);
+      await advanceNSeconds(86400); // 1 day
       await advanceNBlocks(1);
 
       await exit(deployer, staking.address);

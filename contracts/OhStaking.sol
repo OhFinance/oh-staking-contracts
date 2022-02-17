@@ -8,8 +8,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./interfaces/IEscrow.sol";
 
-import "hardhat/console.sol";
-
 contract OhStaking is ERC20, Ownable, ReentrancyGuard {
     IERC20 public token;
     IEscrow public escrow;
@@ -53,7 +51,7 @@ contract OhStaking is ERC20, Ownable, ReentrancyGuard {
         escrow = IEscrow(_escrow);
         maxBonus = _maxBonus;
         maxLockDuration = _maxLockDuration;
-        startRewardsTime = _startRewards;
+        startRewardsTime = block.timestamp + _startRewards;
     }
 
     modifier updateReward(address account) {
@@ -82,7 +80,7 @@ contract OhStaking is ERC20, Ownable, ReentrancyGuard {
     }
 
     function exit() external nonReentrant {
-        _unstake(msg.sender, balanceOf(msg.sender));
+        _unstake(msg.sender, deposits[msg.sender].amount);
         _claim(msg.sender);
     }
 
@@ -112,13 +110,7 @@ contract OhStaking is ERC20, Ownable, ReentrancyGuard {
     }
 
     function earned(address account) public view returns (uint256) {
-        console.log("Account balance:\n %s", balanceOf(account));
-        console.log("Reward per Token:\n %s", rewardPerToken());
-        console.log("userRewardPerTokenPaid[account]:\n %s", userRewardPerTokenPaid[account]);
-        console.log("rewards[account]:\n %s", rewards[account]);
-        console.log("earned:\n %s", ((balanceOf(account) * (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18) + rewards[account]);
         return ((balanceOf(account) * (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18) + rewards[account];
-        //return 1;
     }
 
     // internal views
@@ -160,7 +152,7 @@ contract OhStaking is ERC20, Ownable, ReentrancyGuard {
         require(_duration >= end - start, "Must exceed current lock");
 
         // calculate mint amount, account for previous deposits
-        uint256 mintAmount = (((balance + _amount) * getMultiplier(_duration)) / 1e18) - balance;
+        uint256 mintAmount = (((balance + _amount) * getMultiplier(_duration)) / 1e18) - balanceOf(_user);
 
         // update user deposit
         deposits[_user].amount = balance + _amount;
