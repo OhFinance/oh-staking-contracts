@@ -84,6 +84,49 @@ contract OhStaking is ERC20, Ownable, ReentrancyGuard {
         _claim(msg.sender);
     }
 
+    // Exit without updating reward values, forfeits all rewards
+    function emergencyExit() external nonReentrant {
+        uint256 amount = deposits[msg.sender].amount;
+        uint256 start = deposits[msg.sender].start;
+        uint256 end = deposits[msg.sender].end;
+
+        require(amount > 0, "No tokens to withdraw");
+
+        // require lock has ended if contract has not been killed
+        if (!isKilled) {
+            require(end < block.timestamp, "Tokens still locked");
+        }
+
+        // calculate burn amount
+        uint256 burnAmount = (amount * getMultiplier(end - start)) / 1e18;
+
+        // update user deposit and rewards to 0
+        deposits[msg.sender].amount = 0;
+        deposits[msg.sender].start = 0;
+        deposits[msg.sender].end = 0;
+        rewards[msg.sender] = 0;
+        userRewardPerTokenPaid[msg.sender] = 0;
+
+        _burn(msg.sender, burnAmount);
+        require(token.transfer(msg.sender, amount), "Token transfer failed");
+        emit Unstaked(msg.sender, amount);
+    }
+
+    //owner only functions
+
+    function setRewardAmount(uint256 reward, uint256 _rewardsDuration) external onlyOwner updateReward(address(0)) {
+        rewardsDuration = _rewardsDuration;
+        rewardRate = reward / rewardsDuration;
+
+        lastUpdateTime = block.timestamp;
+        if (block.timestamp < startRewardsTime) {
+            lastRewardTimestamp = startRewardsTime + rewardsDuration;
+        } else {
+            lastRewardTimestamp = block.timestamp + rewardsDuration;
+        }
+        emit RewardAmountSet(rewardRate, _rewardsDuration);
+    }
+
     function kill() external onlyOwner {
         require(!isKilled, "Pool already killed");
         isKilled = true;
@@ -232,20 +275,5 @@ contract OhStaking is ERC20, Ownable, ReentrancyGuard {
         }
 
         super._transfer(_from, _to, _amount);
-    }
-
-    //owner only functions
-
-    function setRewardAmount(uint256 reward, uint256 _rewardsDuration) external onlyOwner updateReward(address(0)) {
-        rewardsDuration = _rewardsDuration;
-        rewardRate = reward / rewardsDuration;
-
-        lastUpdateTime = block.timestamp;
-        if (block.timestamp < startRewardsTime) {
-            lastRewardTimestamp = startRewardsTime + rewardsDuration;
-        } else {
-            lastRewardTimestamp = block.timestamp + rewardsDuration;
-        }
-        emit RewardAmountSet(rewardRate, _rewardsDuration);
     }
 }
