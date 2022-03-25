@@ -1,8 +1,8 @@
 import {ethers, getNamedAccounts} from 'hardhat';
 import {getStaking} from '../lib/contract';
 
-const REWARD_AMOUNT = '100000';
-const REWARD_DURATION = 60 * 60 * 24 * 100; // seconds
+const REWARD_AMOUNT = '864000';
+const REWARD_DURATION = 864000; // 100 days in seconds
 
 async function main() {
   const {deployer} = await getNamedAccounts();

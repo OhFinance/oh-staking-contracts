@@ -1,6 +1,6 @@
 import {ethers, getNamedAccounts} from 'hardhat';
 
-const MINTER_ADDRESS = '0x880491180789B91Aa0918d934AcF479e5eD0EA6a';
+const MINTER_ADDRESS = '0xf88954f79f5bc7f0347bb1e2a4b63a583346e8a4';
 
 async function main() {
   const {deployer} = await getNamedAccounts();
